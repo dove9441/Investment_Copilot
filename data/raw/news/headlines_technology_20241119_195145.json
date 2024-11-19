@@ -1,0 +1,77 @@
+{
+  "status": "success",
+  "total_results": 67,
+  "articles": [
+    {
+      "source": {
+        "id": "ign",
+        "name": "IGN"
+      },
+      "author": "Wesley Yin-Poole",
+      "title": "Half-Life 2 Hits Highest Steam Concurrent Player Count Since Records Began - IGN",
+      "description": "Half-Life 2's 20th Anniversary update has sparked a new concurrent player count record on Steam.",
+      "url": "https://www.ign.com/articles/half-life-2-hits-highest-steam-concurrent-player-count-since-records-began",
+      "image_url": "https://assets-prd.ignimgs.com/2024/11/17/ss-ffb00abd45012680e4f209355ec81f961b6dd1fb-1920x1080-1731881937883.jpg?width=1280",
+      "published_at": "2024-11-18T09:16:39Z",
+      "content": "Half-Life 2s 20th Anniversary update has sparked a new concurrent player count record on Steam.\r\nValves influential shooter hit a peak concurrent player count of 64,222 over the weekend after the stu… [+1893 chars]"
+    },
+    {
+      "source": {
+        "id": null,
+        "name": "Forbes"
+      },
+      "author": "Zak Doffman",
+      "title": "Google’s Gmail Decision—Why You Need A New Email Address - Forbes",
+      "description": "A huge update for 2 billion Gmail users has suddenly leaked; here’s what you need to know.",
+      "url": "https://www.forbes.com/sites/zakdoffman/2024/11/18/googles-update-decision-this-completely-changes-gmail-on-your-phone/",
+      "image_url": "https://imageio.forbes.com/specials-images/imageserve/672917de30558ca355afff3b/0x0.jpg?format=jpg&crop=1006,599,x210,y476,safe&height=900&width=1600&fit=bounds",
+      "published_at": "2024-11-18T05:54:00Z",
+      "content": "Gmail is about to change forever\r\nNurPhoto via Getty Images\r\nUpdated on November 18 with a new email threat warning as malicious image attachments are found evading existing security measures, and a … [+8712 chars]"
+    },
+    {
+      "source": {
+        "id": null,
+        "name": "Cointelegraph"
+      },
+      "author": "Martin Young",
+      "title": "Google’s AI chatbot tells student needing help with homework to ‘please die’ - Cointelegraph",
+      "description": "Google’s Gemini AI chatbot caused controversy by responding with a disturbing message to a US student researching a project.",
+      "url": "https://cointelegraph.com/news/google-ai-chatbot-tells-student-needing-homework-help-please-die",
+      "image_url": "https://images.cointelegraph.com/cdn-cgi/image/format=auto,onerror=redirect,quality=90,width=1200/https://s3.cointelegraph.com/uploads/2024-11/01933d97-c944-7e45-85d5-6a53945ab78c",
+      "published_at": "2024-11-18T05:48:37Z",
+      "content": "A student in the United States received a chilling response from Googles artificial intelligence chatbot Gemini when he asked for help with an assignment for college. \r\nThe Michigan college student r… [+2422 chars]"
+    },
+    {
+      "source": {
+        "id": null,
+        "name": "Push Square"
+      },
+      "author": "Khayl Adam",
+      "title": "Fortnite's TMNT Islands Trailer Demonstrates How Far Epic's Platform Has Come - Push Square",
+      "description": "We'd have never left the house",
+      "url": "https://www.pushsquare.com/news/2024/11/fortnites-tmnt-islands-trailer-demonstrates-how-far-epics-platform-has-come",
+      "image_url": "https://images.pushsquare.com/055768583a905/1280x720.jpg",
+      "published_at": "2024-11-18T03:00:00Z",
+      "content": "Subscribe to Push Square on YouTube150k\r\nEpic Games' Fortnite is either the greatest game ever made or a horrific blight on the minds of impressionable young gamers, depending on who you ask. While w… [+1059 chars]"
+    },
+    {
+      "source": {
+        "id": null,
+        "name": "Asia Times"
+      },
+      "author": "Yong Jian",
+      "title": "Huawei’s Mate70 to flex high-end chip self-sufficiency - Asia Times",
+      "description": "Huawei will launch Mate70 flagship smartphone on November 26 to show its ability of making smartphones without using US chips and software.",
+      "url": "https://asiatimes.com/2024/11/huaweis-mate70-to-flex-high-end-chip-self-sufficiency/",
+      "image_url": "https://asiatimes.com/wp-content/uploads/2024/11/Huawei-Mate70-Smartphone.jpg",
+      "published_at": "2024-11-18T01:45:52Z",
+      "content": "China’s Huawei Technologies is set to launch its Mate70 flagship smartphone on November 26, a milestone in its sanctions-induced quest for self-sufficiency from US chips and software.\r\nRichard Yu, ch… [+4752 chars]"
+    }
+  ],
+  "request_time": "2024-11-19T19:51:45.142721",
+  "query_params": {
+    "country": "us",
+    "category": "technology",
+    "page_size": 5
+  }
+}
