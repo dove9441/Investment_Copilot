@@ -25,7 +25,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-class NewsCollector:
+class NewsAPIClient:
     def __init__(self, api_key: str):
         if not api_key:
             raise ValueError("API 키가 필요합니다. .env 파일에 NEWS_API_KEY를 설정하세요.")
