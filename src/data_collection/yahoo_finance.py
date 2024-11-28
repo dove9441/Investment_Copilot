@@ -33,7 +33,7 @@ Date                Open      High       Low     Close    Volume  Dividends  Sto
 
 
 
-#get_market_summary
+#
 """
 {
     '^GSPC': {
