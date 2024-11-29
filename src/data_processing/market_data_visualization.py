@@ -58,10 +58,13 @@ class MarketVisualizer:
         colors = []
         
         for symbol, info in market_data.items():
-            names.append(info['name'])
-            changes.append(info['change_percent'])
-            colors.append(self.colors['positive'] if info['change_percent'] > 0 
-                        else self.colors['negative'])
+            if info['change_percent'] is not None:
+                # 국채 수익률 데이터는 제외
+                if 'Treasury' not in info['name']:
+                    names.append(info['name'])
+                    changes.append(info['change_percent'])
+                    colors.append(self.colors['positive'] if info['change_percent'] > 0 
+                                else self.colors['negative'])
 
         plt.figure(figsize=(16, 10))
         bars = plt.bar(names, changes, color=colors, width=0.6)
@@ -75,9 +78,9 @@ class MarketVisualizer:
                     fontsize=11,
                     weight='bold')
 
-        plt.title('시장 개요 (Market Overview)', pad=20, size=16, weight='bold')
-        plt.xlabel('자산 종류', labelpad=15, size=12)
-        plt.ylabel('일간 변동률 (%)', labelpad=15, size=12)
+        plt.title('Market Overview', pad=20, size=16, weight='bold')
+        plt.xlabel('Asset Types', labelpad=15, size=12)
+        plt.ylabel('Daily Change (%)', labelpad=15, size=12)
         plt.xticks(rotation=45, ha='right')
         plt.grid(True, alpha=0.3, linestyle='--')
         plt.tight_layout()
@@ -140,7 +143,7 @@ class MarketVisualizer:
         
         # 컬러바 추가
         cbar = plt.colorbar(im)
-        cbar.set_label('상관계수', rotation=270, labelpad=15)
+        cbar.set_label('Correlation', rotation=270, labelpad=15)
 
         # 상관계수 값 표시
         for i in range(len(corr_matrix)):
@@ -157,7 +160,7 @@ class MarketVisualizer:
         plt.yticks(range(len(corr_matrix)), corr_matrix.index)
         
         # 제목 설정
-        plt.title('자산 상관관계 매트릭스 (1개월 수익률 기준)', 
+        plt.title('Asset Correlation Matrix (1-Month Returns)', 
                  pad=20, size=16, weight='bold')
         
         plt.tight_layout()
