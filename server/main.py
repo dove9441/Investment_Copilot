@@ -12,6 +12,10 @@ import threading
 import json
 from fastapi import Request, FastAPI, Response
 from langchain.chains import LLMChain
+from fastapi.responses import FileResponse
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from server.components.summerize.retrivial_from_vector_space import getResponseBasedVectorSpace
 dotenv.load_dotenv()
 
 ##### 기능 함수 구현 단계 #####
@@ -34,14 +38,14 @@ def timeover():
         "outputs":[
             {
                 "simpleText":{
-                    "text":"아직 제가 생각이 끝나지 않았어요 🙏🙏 \n잠시 후 아래 말풍선을 눌러주세요 👆"
+                    "text":"잠시 기다려주세요 ..."
                 }
             }
         ],
         "quickReplies":[
             {
                 "action":"message",
-                "label":"생각 다 끝났나요? 🙋‍♂️",
+                "label":"생각 다 끝났나요?",
                 "messageText":"생각 다 끝났나요?"
             }
         ]
@@ -68,7 +72,23 @@ async def root():
 @app.post("/chat/")
 async def chat(request: Request):
     kakaorequest = await request.json()
+    # request에 URL이 포함되어있지 않아서 넣어줘야 한다
+    scope = request.scope  # ASGI의 scope 객체
+    scheme = scope.get("scheme", "http")
+    host = scope["headers"][0][1].decode("utf-8")  # Host 헤더에서 호스트 정보 가져오기
+    path = scope["path"]
+    url = f"{scheme}://{host}{path}"
+    kakaorequest["base_url"] = url
+
+
+    #print(json.dumps(kakaorequest, indent=2))
     return mainChat(kakaorequest)
+
+# Static files 경로 설정 (../data/visualizations 디렉토리를 /data/images 경로로 매핑)
+static_path = Path(__file__).parent.parent #/Users/admin/Documents/OSS_TermProject/
+app.mount("/data/images/visualizations", StaticFiles(directory=str(static_path)+'/data/visualizations'), name="visualizations_images")
+app.mount("/data/images/market_data", StaticFiles(directory=str(static_path)+'/market_data'), name="market_data_images")
+
 
 #### 메인 함수 구현 단계 ######
 
@@ -80,7 +100,7 @@ def mainChat(kakaorequest):
     #kakaorequest = json.loads(event['body'])
     # 응답 결과를 저장하기 위한 텍스트 파일 생성
     cwd = os.getcwd()
-    filename = cwd + "./botlog.txt"
+    filename = cwd + "/botlog.txt"
     if not os.path.exists(filename):
         with open(filename, "w") as f:
             f.write("")
@@ -89,7 +109,7 @@ def mainChat(kakaorequest):
 
     # 답변 생성 함수 실행
     response_queue = q.Queue()
-    request_respond = threading.Thread(target=responseOpenAI, args = (kakaorequest, response_queue, filename))
+    request_respond = threading.Thread(target=AI_Response, args = (kakaorequest, response_queue, filename))
     request_respond.start()
 
     # 답변 생성 시간 체크
@@ -108,7 +128,7 @@ def mainChat(kakaorequest):
     return Response(content=json.dumps(response), media_type='application/json')
 
 # 답변/사진 요청 및 응답 확인 함수
-def responseOpenAI(request, response_queue, filename):
+def AI_Response(request, response_queue, filename):
     #print(json.dumps(request, indent=2))
     # 사용자가 버튼을 클릭하여 답변 완성 여부를 다시 봤을 시
     if '생각 다 끝났나요?' in request["userRequest"]["utterance"]:
@@ -118,23 +138,39 @@ def responseOpenAI(request, response_queue, filename):
         # 텍스트 파일 내 저장된 정보가 있을 경우
         if len(last_update.split()) > 1:
             kind, bot_res, prompt = last_update.split()[0], last_update.split()[1], last_update.split()[2]
-            if kind == "img":
-                response_queue.put(imageResponseFormat(bot_res, prompt))
-            else:
-                response_queue.put(textResponseFormat(bot_res))
+            response_queue.put(textResponseFormat(last_update))
             dbReset(filename)
 
     # LLM 답변을 요청한 경우
     elif '/ask' in request["userRequest"]["utterance"]: 
         dbReset(filename)
         prompt = request["userRequest"]["utterance"].replace("/ask", "")
-        bot_res = getRagResponse_LLAMA(prompt)#getTextFromLLAMA(prompt)
+        bot_res = getTextFromLLAMA(prompt)#getTextFromLLAMA(prompt)
         response_queue.put(textResponseFormat(bot_res))
 
         save_log = "ask" + " " + str(bot_res) + " " + str(prompt)
         with open(filename, 'w') as f:
             f.write(save_log)
 
+    # 오늘의 정보 요청
+    elif '/get F' in request["userRequest"]["utterance"]: 
+        dbReset(filename)
+        prompt = request["userRequest"]["utterance"].replace("/get", "")
+        response_queue.put(getFearandGreed(request))
+
+    elif '/get C' in request["userRequest"]["utterance"]: 
+        dbReset(filename)
+        prompt = request["userRequest"]["utterance"].replace("/get", "")
+        response_queue.put(getCorrelationMatrix(request))
+
+    elif '/v' in request["userRequest"]["utterance"]: 
+        dbReset(filename)
+        prompt = request["userRequest"]["utterance"].replace("/v", "")
+        bot_res = getResponseBasedVectorSpace(prompt)
+        response_queue.put(textResponseFormat(bot_res))
+        save_log = str(bot_res)
+        with open(filename, 'w') as f:
+            f.write(save_log)
     # 아무 답변 요청이 없는 채팅일 경우
     else:
         # 기본 response 값
@@ -155,6 +191,100 @@ def responseOpenAI(request, response_queue, filename):
 
 
 
+
+
+import pandas as pd
+from datetime import date
+
+def getFearandGreed(request: Request):
+    # CSV 파일 경로
+    file_path = "/Users/admin/Documents/OSS_TermProject/data/raw/fear_greed_index.csv"
+    df = pd.read_csv(file_path)
+
+    # 마지막 행의 마지막 열 값 읽기
+    score = round(float(df.iloc[-1, -1]))
+    base_url = request["base_url"]
+    fear_greed_image_url = f"{base_url.replace("chat/", "")}data/images/visualizations/fear_greed_gauge.png"
+    cor_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/correlation_matrix_20241128_163021.png"
+    # 오늘 날짜 가져오기
+    today = date.today()
+    formatted_date = today.strftime("%Y-%m-%d")
+    response = {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+            {
+                "basicCard": {
+                "title": "Fear & Greed Index",
+                "description": "현재 시장의 감정적 흐름에 대해 나타냅니다. {today} 현재, 시장의 Fear & Greed index 지수는 {score}입니다.",
+                "thumbnail": {
+                    "imageUrl": fear_greed_image_url
+                }
+                }
+            },
+            {
+                "simpleImage": {
+                    "imageUrl": cor_image_url,
+                    "altText": "alt"
+                },
+            },
+            {
+                "simpleText": {
+                    "text": "Stock Price & Index Correlation Matrix between famous U.S companies\n미국 주요 주가 지수와 대표 기업들의 주가의 상관관계에 관한 지표입니다. 1에 가까울수록 연관성이 높습니다."
+                }
+            }
+            
+            ]
+        }
+        }
+    # description 필드의 문자열을 동적으로 업데이트
+    response["template"]["outputs"][0]["basicCard"]["description"] = \
+    response["template"]["outputs"][0]["basicCard"]["description"].format(today=formatted_date, score=score)
+    return response
+
+def getCorrelationMatrix(request : Request):
+    # 클라이언트 요청의 호스트 URL 가져오기
+    base_url = request["base_url"]
+    image_url = f"{base_url.replace("chat/", "")}data/images/market_data/correlation_matrix_20241128_163021.png"
+    # 오늘 날짜 가져오기
+    today = date.today()
+    formatted_date = today.strftime("%Y-%m-%d")
+    r = {
+    "version": "2.0",
+    "template": {
+        "outputs": [
+            {
+                "simpleImage": {
+                    "imageUrl": image_url,
+                    "altText": "alt"
+                },
+            },
+            {
+                "simpleText": {
+                    "text": "Stock Price & Index Correlation Matrix between famous U.S companies\n미국 주요 주가 지수와 대표 기업들의 주가의 상관관계에 관한 지표입니다. 1에 가까울수록 연관성이 높습니다."
+                }
+            }
+            
+        ]
+    }
+    }
+    response = {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+            {
+                "basicCard": {
+                "title": "Stock Price & Index Correlation Matrix between famous U.S companies ",
+                "description": "미국 주요 주가 지수와 대표 기업들의 주가의 상관관계에 관한 지표입니다. 1에 가까울수록 연관성이 높습니다.",
+                "thumbnail": {
+                    "imageUrl": image_url
+                }
+                }
+            }
+            ]
+        }
+        }
+    return r
 
 def getTextFromLLAMA(prompt):
     llm = ChatGroq(model="llama-3.1-8b-instant")#llama-3.1-70b-versatile")
