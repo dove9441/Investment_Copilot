@@ -120,3 +120,4 @@ uvicorn==0.32.0
 webencodings==0.5.1
 yarl==1.17.2
 yfinance==0.2.50
+seaborn==0.11.2
