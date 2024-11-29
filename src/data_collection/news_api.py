@@ -272,7 +272,7 @@ def main():
         return
 
     # 뉴스 수집 실행
-    collector = NewsCollector(api_key)
+    collector = NewsAPIClient(api_key)
     result = collector.collect_news()
     
     # 데이터 저장 및 결과 출력
