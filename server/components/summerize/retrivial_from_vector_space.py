@@ -45,6 +45,6 @@ def getResponseBasedVectorSpace(question):
 
     # Run
     response = chain.invoke(question)
-    print(response)
+    #print(response)
     return response
     #print(response)
