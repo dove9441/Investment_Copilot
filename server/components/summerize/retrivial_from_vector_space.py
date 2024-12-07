@@ -5,6 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import PromptTemplate, ChatPromptTemplate
+import os
 import dotenv
 
 def getResponseBasedVectorSpace(question):
@@ -14,6 +15,7 @@ def getResponseBasedVectorSpace(question):
         model_kwargs={'device':'cpu'},
         encode_kwargs={'normalize_embeddings':True},
     )
+    #print(os.getcwd())
     vector_store = FAISS.load_local('./db/faiss', embedding_model, allow_dangerous_deserialization=True)
 
 
@@ -47,4 +49,3 @@ def getResponseBasedVectorSpace(question):
     response = chain.invoke(question)
     #print(response)
     return response
-    #print(response)

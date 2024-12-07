@@ -237,7 +237,7 @@ def main():
     save_dir = "market_data"
     os.makedirs(save_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_path_gauge = os.path.join(save_dir, f"fear_greed_gauge_{timestamp}.png")
+    save_path_gauge = os.path.join(save_dir, f"fear_greed_gauge.png")
     visualizer.create_fear_greed_gauge(save_path_gauge)
     
     print("\n4. Fear & Greed 반원형 게이지 차트 생성 중...")

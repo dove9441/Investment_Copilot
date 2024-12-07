@@ -215,7 +215,7 @@ class NewsAPIClient:
     def _save_to_file(self, data: Dict) -> str:
         """수집된 뉴스 데이터 저장 및 파일 경로 반환"""
         try:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime('%Y%m%d')
             filename = f"collected_news_{timestamp}.json"
             filepath = os.path.join(self.data_dir, filename)
 

@@ -13,10 +13,11 @@ from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
+import os
 # 1. 데이터 로드 및 전처리
 
 # JSON 데이터 로드 (예시를 위해 'news_articles.json' 파일을 사용한다고 가정합니다)
-with open('/Users/admin/Documents/OSS_TermProject/data/raw/news/collected_news_20241129_225604.json', 'r', encoding='utf-8') as f:
+with open('./data/raw/news/collected_news_20241208_021939.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 dotenv.load_dotenv()
 articles = data['articles']
@@ -97,6 +98,8 @@ retriever_from_llm = MultiQueryRetriever.from_llm(
     ), llm=llm
 )
 prompt = ChatPromptTemplate.from_template(template)
+
+
 def format_docs(docs):
     return '\n\n'.join([d.page_content for d in docs])
 
