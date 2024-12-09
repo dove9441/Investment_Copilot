@@ -1,5 +1,50 @@
-#Enviroment Variables
+# Virtual Environment
+venv/
+env/
 .env
-/venv
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Data files
+/data/raw/news/*.json
+/data/raw/news/**/*.json
+*.csv
+*.xlsx
+*.xls
+
+# Generated images and visualizations
+/market_data/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+/logs/
+*.log
+
+# Environment variables and secrets
+.env
+.env.*
+*.env
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build files
+build/
+dist/
+*.egg-info/

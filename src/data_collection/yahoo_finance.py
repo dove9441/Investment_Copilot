@@ -59,8 +59,9 @@ class YahooFinance:
             'GOOGL': {'name': 'Alphabet', 'unit': '$'},          # 검색/광고
             'AMZN': {'name': 'Amazon', 'unit': '$'},             # 전자상거래/클라우드
             'META': {'name': 'Meta', 'unit': '$'},               # 소셜미디어
-            
+            'TSLA': {'name': 'Tesla', 'unit': '$'},               #전기차/인공지능
             # 반도체
+            
             'NVDA': {'name': 'NVIDIA', 'unit': '$'},             # GPU/AI칩
             'AMD': {'name': 'AMD', 'unit': '$'},                 # CPU/GPU
             'AVGO': {'name': 'Broadcom', 'unit': '$'},           # 통신칩
@@ -68,6 +69,7 @@ class YahooFinance:
             'INTC': {'name': 'Intel', 'unit': '$'},              # CPU
             'MU': {'name': 'Micron', 'unit': '$'},               # 메모리
             'ADI': {'name': 'Analog Devices', 'unit': '$'},      # 아날로그반도체
+            'TSM': {'name': 'TSMC', 'unit': '$'},                # 파운드리
             'AMAT': {'name': 'Applied Materials', 'unit': '$'},   # 반도체장비
             'LRCX': {'name': 'Lam Research', 'unit': '$'},       # 반도체장비
             
