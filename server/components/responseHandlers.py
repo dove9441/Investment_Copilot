@@ -11,8 +11,9 @@ from langchain.docstore.document import Document # 텍스트를 document 객체�
 from fastapi import Request
 from langchain.chains import LLMChain
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 import json
+
 
 
 # 텍스트 파일 초기화
@@ -51,10 +52,11 @@ def AI_Response(request, response_queue, filename):
             dbReset(filename)
 
     # 오늘의 정보 요청
-    elif '/get F' in request["userRequest"]["utterance"]: 
+    elif 'Dashboard' in request["userRequest"]["utterance"]: 
         dbReset(filename)
-        prompt = request["userRequest"]["utterance"].replace("/get", "")
-        response_queue.put(getFearandGreed(request))
+        bot_res = getDashboard(request)
+        response_queue.put(textResponseFormat(bot_res))
+        save_log = str(bot_res)
 
     elif '/get C' in request["userRequest"]["utterance"]: 
         dbReset(filename)
@@ -78,14 +80,10 @@ def AI_Response(request, response_queue, filename):
         with open(filename, 'w') as f:
             f.write(save_log)
 
-    elif '시장 현황' in request["userRequest"]["utterance"]: 
+    elif 'Fear & Greed' in request["userRequest"]["utterance"]: 
         dbReset(filename)
-        prompt = request["userRequest"]["utterance"].replace("/v", "")
-        bot_res = getResponseBasedVectorSpace(prompt)
-        response_queue.put(textResponseFormat(bot_res))
-        save_log = str(bot_res)
-        with open(filename, 'w') as f:
-            f.write(save_log)
+        prompt = request["userRequest"]["utterance"].replace("/get", "")
+        response_queue.put(getFearandGreed(request))
 
     elif '/s' in request["userRequest"]["utterance"]:
         dbReset(filename)
@@ -242,7 +240,7 @@ def getFearandGreed(request: Request):
     # 마지막 행의 마지막 열 값 읽기
     score = round(float(df.iloc[-1, -1]))
     base_url = request["base_url"]
-    fear_greed_image_url = f"{base_url.replace("chat/", "")}data/images/visualizations/fear_greed_gauge.png"
+    fear_greed_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/half_circle_gauge_{datetime.now().strftime("%Y%m%d")}.png" 
     cor_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/correlation_matrix_20241208_022323.png"
     # 오늘 날짜 가져오기
     today = date.today()
@@ -254,24 +252,12 @@ def getFearandGreed(request: Request):
             {
                 "basicCard": {
                 "title": "Fear & Greed Index",
-                "description": "현재 시장의 감정적 흐름에 대해 나타냅니다. {today} 현재, 시장의 Fear & Greed index 지수는 {score}입니다.",
+                "description": "현재 시장의 감정적 흐름에 대해 나타냅니다. {today}, 시장의 Fear & Greed index 지수는 {score}입니다.",
                 "thumbnail": {
                     "imageUrl": fear_greed_image_url
                 }
                 }
             },
-            {
-                "simpleImage": {
-                    "imageUrl": cor_image_url,
-                    "altText": "alt"
-                },
-            },
-            {
-                "simpleText": {
-                    "text": "Stock Price & Index Correlation Matrix between famous U.S companies\n미국 주요 주가 지수와 대표 기업들의 주가의 상관관계에 관한 지표입니다. 1에 가까울수록 연관성이 높습니다."
-                }
-            }
-            
             ]
         }
         }
@@ -279,6 +265,31 @@ def getFearandGreed(request: Request):
     response["template"]["outputs"][0]["basicCard"]["description"] = \
     response["template"]["outputs"][0]["basicCard"]["description"].format(today=formatted_date, score=score)
     return response
+
+def getDashboard(request : Request):
+    base_url = request["base_url"]
+    dashboard_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/dashboard_{datetime.now().strftime("%Y%m%d")}.png"
+    index_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/table_주요_지수_{datetime.now().strftime("%Y%m%d")}.png"
+    response = {
+    "version": "2.0",
+    "template": {
+        "outputs": [
+            {
+                "simpleImage": {
+                    "imageUrl": dashboard_image_url,
+                    "altText": "alt"
+                },
+            },
+            {
+                "simpleImage": {
+                "imageUrl": index_image_url,
+                "altText": "alt"
+                },
+            }
+            
+        ]
+    }
+    }
 
 def getCorrelationMatrix(request : Request):
     # 클라이언트 요청의 호스트 URL 가져오기
