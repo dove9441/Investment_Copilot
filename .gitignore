@@ -22,7 +22,6 @@ __pycache__/
 
 # Generated images and visualizations
 /market_data/
-*.png
 *.jpg
 *.jpeg
 *.gif
