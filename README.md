@@ -50,6 +50,8 @@ http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 �
 - **Like ChatGPT**: 카카오톡 채팅창을 통해 어떤 것이든 바로 질문하고 답변받을 수 있습니다.
 - **최신 데이터 검색**: 검색을 통해 최신 정보도 찾아볼 수 있습니다.
 
+** 본래 매일 아침 채널을 추가한 사용자에게 정보를 자동으로 제공하는 기능으로(서버가 선톡) 구현하는 것이 목표였지만, [카카오톡 정책](https://kakaobusiness.gitbook.io/main/tool/chatbot/main_notions/event-api)에 따라 사업자등록증이 필요하였기에 유저가 클릭을 통해 정보를 받아오는 방식으로 구현하였습니다.**
+
 ## ✨ 주요 기능
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/1.png)
 <br>http://pf.kakao.com/_lmNxdn 채널을 추가하거나 바로 채팅을 통해 사용해볼 수 있습니다.<br><br>
@@ -69,6 +71,8 @@ http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 �
 
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/5.png)
 <br>**Fear & Greed, Dashboard** : 시장 동향에 대해 간단히 알아볼 수 있습니다.<br><br>
+![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/comat.png)
+
 <br>**상관관계** : 주요 지수에 관한 correlation matrix를 출력합니다..<br><br>
 
 
@@ -755,23 +759,6 @@ GROQ_API_KEY = 'YOUR_API_KEY'
 NEWS_API_KEY = 'YOUR_API_KEY'
 ```
 
-## 📚 API 문서
-
-### 카카오톡 스킬 서버 엔드포인트
-
-```shell
-bash
-Copy
-POST /chat# 카카오톡 스킬 서버
-GET /data/images/market_data# 시각화 데이터
-GET /data/news# 뉴스 데이터
-```
-
-### 관련 문서
-
-- [카카오톡 응답 서버 가이드](https://kakaobusiness.gitbook.io/main/tool/chatbot/skill_guide/apply_skill_to_block#use_response_settings_as_values)
-- [News API 문서](https://newsapi.org/v2/)
-
 🛠 기술 스택
 
 ### Backend
@@ -796,58 +783,88 @@ GET /data/news# 뉴스 데이터
 
 ### Deployment
 
-- Ngrok (dev)
+- Ngrok
 
 📂 프로젝트 구조
 
-```plaintext
-Copy
-investment-support-system/
-├── server/
-│   ├── components/
-│   │   ├── responseHandlers.py     # 카카오톡 응답 처리
-│   │   └── summerize/             # 뉴스 분석
-│   └── scheduler/
-│       └── daily_reporter.py       # 일일 데이터 수집
-├── src/
-│   ├── data_collection/           # 데이터 수집 모듈
-│   └── data_processing/           # 데이터 처리/시각화
-├── data/
-│   └── raw/                       # 수집된 원본 데이터
-└── db/
-    └── faiss/                     # 벡터 DB 저장소
+```
+
+.
+├── LICENSE
+├── README.md
+├── botlog.txt
+├── data
+│   ├── raw
+│   │   ├── fear_greed_index.csv # feer & greed 지수
+│   │   └── news # 뉴스 데이터
+│   └── visualizations
+│       └── fear_greed_gauge.png # 테스트
+├── db # vector store DB
+│   └── faiss
+│       ├── index.faiss
+│       └── index.pkl
+├── image 
+├── market_data # 데이터
+├── server
+│   ├── RUNSERVER.sh # 스케줄러
+│   ├── components
+│   │   ├── responseHandlers.py # 카카오톡 스킬 응답 핸들러
+│   │   └── summerize
+│   │   |   └──pick_and_summerize.py # 뉴스 번역 및 요약, vector store 저장
+│   │   |   └──retrivial_from_vector_space.py # RAG retriver
+│   │   |   └──webloader.py # LLM 테스트
+│   ├── main.py
+│   └── scheduler
+│       ├── __init__.py
+│       ├── dailyRESTART.sh # 스케줄러
+│       └── dailyReporter.py # 스케줄러 
+├── src
+│   ├── data_collection
+│   │   ├── __init__.py
+│   │   ├── cnn_fear_greed.py # 데이터 수집 모듈
+│   │   ├── news_api.py # 데이터수집 모듈
+│   │   └── yahoo_finance.py #  데이터 수집 모듈
+│   └── data_processing
+│       ├── __pycache__
+│       ├── cnn_fear_greed_visualization.py # 주가 정보, fear & greed 수집 및 시각화
+│       ├── market_data_visualization.py # 상관관계 매트릭스 시각화
+│       └── test.py #테스트
+├── tests
+│   ├── __init__.py
+│   └── test_data_collection.py #테스트
+├── venv # 가상 환경
 ```
 
 ## 👥 팀 구성
 
 | 이름       | 역할          | 담당 업무                                                   |
 | ---------- | ------------- | ----------------------------------------------------------- |
-| **권준영** | 백엔드 개발자 | 프로젝트 총괄, 아키텍처 설계, 데이터 수집 및 전처리 구현    |
-| **최동주** | 백엔드 개발자 | 카카오톡 응답 스킬서버 구축 및 RAG, LLM 이용한 AI 응답 구현 |
+| **권준영** | Backend | 프로젝트 총괄, 아키텍처 설계, 데이터 수집 및 전처리 구현    |
+| **최동주** | Backend | 카카오톡 채널 및 챗봇 총괄, 카카오톡 응답 스킬서버 구축 및 RAG & LLM 이용한 AI 응답 구현 |
 
 ## 🤔 프로젝트 고찰 및 후기
 
-### 구현 관련 고찰
-
-1. **RAG 시스템 구현**
-
-   - FAISS와 LangChain을 활용한 RAG 시스템 구축은 효과적이었지만, 한글 처리에서 몇 가지 도전과제가 있었습니다
-   - HuggingFace의 한국어 특화 모델(jhgan/ko-sbert-nli)을 사용함으로써 임베딩 품질을 개선할 수 있었습니다
-
-2. **실시간 데이터 처리**
-
-   - 여러 데이터 소스(Yahoo Finance, NewsAPI, CNN)의 실시간 동기화가 challenging했습니다
-   - 비동기 처리를 통해 데이터 수집 성능을 개선했지만, 더 효율적인 방법이 필요해 보입니다
-
-3. **챗봇 응답 시스템**
-   - LLM의 응답 시간이 가끔 길어지는 문제가 있어, 중간 응답을 추가하여 UX를 개선했습니다
-   - 카카오톡 Skill 서버의 5초 제한을 우회하기 위해 callback 시스템을 구현했습니다
+### 어려웠던 부분
+1. Git 사용 시 branch 관리 중 충돌이 매우 많이 일어나서 커밋 기록이 사라지거나 강제로 덮어씌워 다시 작성해야 하는 등 어려움이 있었습니다. (git 어렵다..)
+2. 백지 상태에서 카카오톡 채팅 api 문서를 모두 찾아보며 구현하기 어려웠습니다.
 
 ### 아쉬운 부분
 
 1. 작은 LLM 모델이기 때문에 문맥이 부자연스러운 부분이 있고, 번역도 정확하지 않은 부분이 있습니다.
 2. 벡터 임베딩 모델 또한 컴퓨팅 자원 문제로 작은 모델을 사용했기 때문에, 항상 적절한 문서를 검색하여 올바른 결과를 내보내지 못하는 것이 아쉽습니다.
-3. 
+3. [카카오톡 정책](https://center-pf.kakao.com/_lmNxdn/chatroom_menu/bridge)으로 인해 서버가 매일 선톡으로 정보를 제공하는 기능을 구현하지 못해 아쉽습니다.
+4. 서버를 로컬에서 ngrok으로 배포하였는데 프로젝트 용량이 너무 커서(라이브러리가 많음, 트랜스포머 등) 인해 aws 등을 이용해 배포하지 못한 것에 아쉽습니다.
+5. 가상 환경 설정 과정에서 라이브러리 간 의존성 충돌 해결
+langChain, Groq, HuggingFace와 같은 최신 AI 라이브러리 사용 시 버전 호환성 문제 관리 
+Python 버전과 각 라이브러리의 요구사항을 조정하며 패키지 간 충돌을 해결
+6. 데이터 시각화 
+-여러 시각화 라이브러리(Matplotlib, Plotly등)를 비교하여 최적의 도구 선택의 어려움 
+7. 버전 관리와 협업 
+-팀원 간 코드 통합 과정에서의 충돌
+8. 보안과 민감 정보 관리 
+.gitignore 설정을 통해 API키와 같은 민감 정보를 보호하는 방법의 중요성을 알게 됨
+초기에는 .env 파일을 누락하거나 올바르게 관리하지 않아 데이터 노출이 위험했음을 알게됨. 환경변수 관리의 중요성을 알게 됨
+
 ### 개선이 필요한 부분
 
 1. **데이터 신뢰성**
@@ -893,6 +910,8 @@ investment-support-system/
 이 프로젝트는 GNU General Public License v3.0 라이센스를 따릅니다. 자세한 내용은 LICENSE 파일을 참조하세요.
 
 ## References
+- 카카오톡 응답 서버 가이드
+- News API 문서
 - https://velog.io/@woody_ahn/Llama-3.1%EB%A1%9C-%EB%A1%9C%EC%BB%AC%ED%99%98%EA%B2%BD-RAG-%EA%B5%AC%ED%98%84
 - [https://velog.io/@cho876/요즘-뜨고있다는-FastAPI](https://velog.io/@cho876/%EC%9A%94%EC%A6%98-%EB%9C%A8%EA%B3%A0%EC%9E%88%EB%8B%A4%EB%8A%94-FastAPI)
 - https://recording-it.tistory.com/115
