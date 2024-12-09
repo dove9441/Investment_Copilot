@@ -53,7 +53,7 @@ def AI_Response(request, response_queue, filename):
 
     # 오늘의 정보 요청
 
-    elif '/get C' in request["userRequest"]["utterance"]: 
+    elif '상관관계' == request["userRequest"]["utterance"]: 
         dbReset(filename)
         prompt = request["userRequest"]["utterance"].replace("/get", "")
         response_queue.put(getCorrelationMatrix(request))
@@ -207,7 +207,10 @@ def truncate(text):
     return truncated
 
 def getSearchResponse_LLAMA(query):
-    search_results = ddg_search(query)
+    try:
+        search_results = ddg_search(query)
+    except Exception as e:
+        return "검색 사용량 제한 한도에 도달했습니다."
     if not search_results:
         return "No search results found or an error occurred."
 
@@ -315,7 +318,7 @@ def getIndex(request : Request):
 def getCorrelationMatrix(request : Request):
     # 클라이언트 요청의 호스트 URL 가져오기
     base_url = request["base_url"]
-    image_url = f"{base_url.replace("chat/", "")}data/images/market_data/correlation_matrix_20241128_163021.png"
+    image_url = f"{base_url.replace("chat/", "")}data/images/market_data/correlation_matrix_{datetime.now().strftime("%Y%m%d")}.png"
     # 오늘 날짜 가져오기
     today = date.today()
     formatted_date = today.strftime("%Y-%m-%d")

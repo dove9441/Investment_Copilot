@@ -61,7 +61,7 @@ http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 �
 <br>**/v [질문]** : 오늘의 뉴스 내용 또는 오늘 주가에 대해 더 자세히 알아볼 수 있습니다.<br><br>
 
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/7.png)
-<br>**/s [질문]** : 어떤 질문이든, 최신 정보를 검색해볼 수 있습니다. 자주 사용하면 응답하지 않을 수 있습니다. 시간이 조금 소요됩니다.<br><br>
+<br>**/s [질문]** : 어떤 질문이든, 최신 정보를 검색해볼 수 있습니다. 자주 사용하면 트래픽 제한으로, 응답하지 않을 수 있습니다. 시간이 조금 소요됩니다.<br><br>
 
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/4.png)
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/9.png)
@@ -69,6 +69,7 @@ http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 �
 
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/5.png)
 <br>**Fear & Greed, Dashboard** : 시장 동향에 대해 간단히 알아볼 수 있습니다.<br><br>
+<br>**상관관계** : 주요 지수에 관한 correlation matrix를 출력합니다..<br><br>
 
 
 
@@ -626,6 +627,8 @@ def getResponseBasedVectorSpace(question):
     #print(response)
     return response
 ```
+# RAG by Websearch - DDGSearch
+[RAG with Web Search](https://dev.to/spara_50/rag-with-web-search-2c3e)를 **매우** 참고했습니다.
 
 # Scheduling
 리눅스 crontab을 이용해, 매일 아침 8시에 데이터 수집을 통한 vector space 구축을 자동으로 수행하게 했습니다. 아래는 쉘 스크립트와 실행할 파이썬 코드입니다.
@@ -888,6 +891,24 @@ investment-support-system/
 ## 📄 라이센스
 
 이 프로젝트는 GNU General Public License v3.0 라이센스를 따릅니다. 자세한 내용은 LICENSE 파일을 참조하세요.
+
+## References
+- https://velog.io/@woody_ahn/Llama-3.1%EB%A1%9C-%EB%A1%9C%EC%BB%AC%ED%99%98%EA%B2%BD-RAG-%EA%B5%AC%ED%98%84
+- [https://velog.io/@cho876/요즘-뜨고있다는-FastAPI](https://velog.io/@cho876/%EC%9A%94%EC%A6%98-%EB%9C%A8%EA%B3%A0%EC%9E%88%EB%8B%A4%EB%8A%94-FastAPI)
+- https://recording-it.tistory.com/115
+- https://lsjsj92.tistory.com/666
+- https://dev-drive.tistory.com/41
+- https://www.developerfastlane.com/blog/ollama-usage-guide
+- https://wikidocs.net/231152
+- https://brunch.co.kr/@ywkim36/147
+- https://teddylee777.github.io/langchain/langchain-tutorial-05/
+- https://tilnote.io/pages/66b059e1788ca90bdea6e10e
+- https://sjwoo1999.tistory.com/m/308
+- https://issul.tistory.com/438
+- https://dev.to/spara_50/rag-with-web-search-2c3e
+- https://kakaobusiness.gitbook.io/main
+- https://www.perplexity.ai/search/meta-ramareul-iyonghaeseo-saeb-O_cGs_U0Tv6kwARkDvcvwQ
+- [https://yogyui.tistory.com/entry/웹크롤링-Yahoo-Finance-지수-이력-가져오기#google_vignette](https://yogyui.tistory.com/entry/%EC%9B%B9%ED%81%AC%EB%A1%A4%EB%A7%81-Yahoo-Finance-%EC%A7%80%EC%88%98-%EC%9D%B4%EB%A0%A5-%EA%B0%80%EC%A0%B8%EC%98%A4%EA%B8%B0#google_vignette)
 
 ## 📞 연락처
 

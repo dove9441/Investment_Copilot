@@ -1,4 +1,3 @@
-# 필요한 라이브러리 임포트
 import json
 import numpy as np
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -15,15 +14,13 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 import os
 from datetime import datetime
-# 1. 데이터 로드 및 전처리
-
-# JSON 데이터 로드 (예시를 위해 'news_articles.json' 파일을 사용한다고 가정합니다)
 
 with open(f'./data/raw/news/collected_news_{datetime.now().strftime('%Y%m%d')}.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 dotenv.load_dotenv()
 articles = data['articles']
 
+# LLM을 이용한 번역
 def translate_text(text, source_language, target_language):
     template = f"Translate the following text from {source_language} to {target_language} preserving the original meaning:\n\n{text}\n\nTranslation:"
     llm = ChatGroq(model="llama-3.1-8b-instant")
@@ -32,7 +29,7 @@ def translate_text(text, source_language, target_language):
     response = chain.invoke({'text':prompt})
     return response['text'].strip()
 
-# 기사 내용 추출 및 전처리
+# 기사 내용 추출 및 Document 객체화해서 vector store 구축
 documents = []
 for idx, article in enumerate(articles):
     content = article.get('full_content')
@@ -53,7 +50,8 @@ for doc in documents:
     print("내용:")
     print(doc.page_content)
     print("====================\n")
-# 2. 영어 임베딩 생성 및 벡터 스토어 구축
+
+# 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 chunks = text_splitter.split_documents(documents)
 

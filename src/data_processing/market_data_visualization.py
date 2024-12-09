@@ -41,7 +41,7 @@ class MarketVisualizer:
         print("MarketVisualizer 초기화 완료")
 
     def _save_figure(self, name: str) -> str:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now().strftime('%Y%m%d')
         filename = f"{name}_{timestamp}.png"
         filepath = os.path.join(self.output_dir, filename)
         
