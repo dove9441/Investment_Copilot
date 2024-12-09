@@ -9,6 +9,33 @@ src_dir = os.path.dirname(current_dir)
 if src_dir not in sys.path:
     sys.path.append(src_dir)
 
+# 한글 폰트 설정
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
+# 한글 폰트 설정
+def set_korean_font():
+    if os.name == 'nt':  # Windows
+        font_path = "C:\\Windows\\Fonts\\malgun.ttf"
+    elif os.name == 'posix':  # macOS 또는 Linux
+        font_path = "/System/Library/Fonts/Supplemental/AppleGothic.ttf"  # macOS
+        # Linux에서는 한글 폰트를 시스템 경로에서 찾아 지정
+        if not os.path.exists(font_path): 
+            font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
+    
+    if os.path.exists(font_path):
+        font_prop = fm.FontProperties(fname=font_path)
+        plt.rcParams['font.family'] = font_prop.get_name()
+        print(f"폰트 설정 완료: {font_prop.get_name()}")
+    else:
+        print("한글 폰트를 찾을 수 없습니다. 기본 설정을 사용합니다.")
+
+# 한글 폰트 설정 호출
+set_korean_font()
+
+
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -55,15 +82,15 @@ class ComprehensiveMarketVisualizer:
     def _get_mood_text(self, value: float) -> str:
         """지수값에 따른 시장 심리 텍스트 반환"""
         if value <= 25:
-            return '극도의 공포'
+            return 'Extreme Fear (극도의 공포)'
         elif value <= 45:
-            return '공포'
+            return 'Fear (공포)'
         elif value <= 55:
-            return '중립'
+            return 'Neutral (중립)'
         elif value <= 75:
-            return '탐욕'
+            return 'Greed (탐욕)'
         else:
-            return '극도의 탐욕'
+            return 'Extreme Greed (극도의 탐욕)'
 
     def create_market_dashboard(self) -> go.Figure:
         """종합 시장 대시보드 생성"""
@@ -206,9 +233,9 @@ class ComprehensiveMarketVisualizer:
             ax.text(x * 1.2, y * 1.2, str(i), ha='center', va='center', fontsize=12, color='black')
         
         mood_text = self._get_mood_text(value)
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        status_text = f"{value:.1f} ({mood_text})"
-        ax.text(0, -0.3, status_text, ha='center', va='center', fontsize=18, weight='bold', color='black')
+        timestamp = datetime.now().strftime("%Y-%m-%d")
+        status_text = f"{value}\n{mood_text}"
+        ax.text(0, 0.2, status_text, ha='center', va='center', fontsize=18, weight='bold', color='black')
         
         ax.axis('off')
         
@@ -223,28 +250,41 @@ def main():
     print("=== 종합 시장 데이터 시각화 시작 ===")
     visualizer = ComprehensiveMarketVisualizer()
     
+    # 결과물을 저장할 디렉토리
+    save_dir = "market_data"
+    os.makedirs(save_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d")
+
     print("\n1. 시장 대시보드 생성 중...")
     dashboard = visualizer.create_market_dashboard()
-    dashboard.show()
-    
+    #dashboard.show()
+    # 대시보드 이미지 저장
+    dashboard_path = os.path.join(save_dir, f"dashboard_{timestamp}.png")
+    dashboard.write_image(dashboard_path)
+    print(f"대시보드 이미지 저장 완료: {dashboard_path}")
+
     print("\n2. 카테고리별 테이블 생성 중...")
     tables = visualizer.create_market_tables()
     for category, table in tables.items():
         print(f"\n{category} 테이블 표시 중...")
-        table.show()
-    
+        #table.show()
+        # 테이블 이미지 저장
+        table_path = os.path.join(save_dir, f"table_{category}_{timestamp}.png")
+        table.write_image(table_path)
+        print(f"{category} 테이블 이미지 저장 완료: {table_path}")
+
     print("\n3. Fear & Greed 게이지 차트 생성 중...")
-    save_dir = "market_data"
-    os.makedirs(save_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # 게이지 차트는 이미 코드 내에서 save_path를 통해 저장 중
+    # 추가적으로 다른 이름으로 저장하고 싶다면 아래와 같이 가능
     save_path_gauge = os.path.join(save_dir, f"fear_greed_gauge_{timestamp}.png")
     visualizer.create_fear_greed_gauge(save_path_gauge)
-    
+
     print("\n4. Fear & Greed 반원형 게이지 차트 생성 중...")
     save_path_half_circle = os.path.join(save_dir, f"half_circle_gauge_{timestamp}.png")
     visualizer.create_half_circle_gauge(save_path_half_circle)
-    
+
     print("\n시각화 완료!")
+    print(f"모든 이미지가 '{save_dir}' 디렉토리에 저장되었습니다.")
 
 if __name__ == "__main__":
     main()
