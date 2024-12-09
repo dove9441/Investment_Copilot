@@ -70,19 +70,13 @@ vector_store = FAISS.from_documents(chunks,
                                     embedding = embedding_model,
                                     )
 vector_store.save_local('./db/faiss')
-#db3 = FAISS.load_local('./db/faiss', embeddings_model)
 
-# 3. LLM 설정
+
 
 llm = ChatGroq(model="llama-3.1-8b-instant")
-# 4. 한국어 질문 번역
 
 
 
-
-
-# 질문을 영어로 번역
-#translated_query = translate_text(korean_query, "Korean", "English")
 # Prompt
 template = '''Answer the question based only on the following context:
 {context}
@@ -113,6 +107,6 @@ chain = (
     | StrOutputParser()
 )
 
-# Run
+# Test
 response = chain.invoke('주어진 기사들 중 경제와 시장 상황, 투자에 관련된 기사 5개를 선정해서 각 기사를 한국어로 요약해줘.')
 print(response)

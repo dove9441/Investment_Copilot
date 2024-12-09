@@ -69,7 +69,7 @@ def AI_Response(request, response_queue, filename):
 
     elif '오늘의 뉴스' == request["userRequest"]["utterance"]: 
         dbReset(filename)
-        bot_res = getResponseBasedVectorSpace('주어진 기사들 중 경제와 시장 상황, 투자, 정치에 관련된 기사 10개를 선정해서 각 기사를 한국어로 요약해줘.')
+        bot_res = getResponseBasedVectorSpace('주어진 뉴스 기사 중 경제에 관한 기사들을 10개 뽑아서 요약해줘.')
         response_queue.put(textResponseFormat(bot_res))
         save_log = str(bot_res)
         with open(filename, 'w') as f:

@@ -45,4 +45,4 @@ for script in scripts_to_run:
 
 logging.info("==== Daily Reporter 종료 ====")
 
-# crontab -e 0 8 * * * /usr/bin/python3 /path/to/daliyReporter.py  으로 설정해줘야함
+# crontab -e 0 8 * * * /usr/bin/python3 /dailyRESTART.sh  로 설정해줘야함

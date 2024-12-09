@@ -31,7 +31,7 @@ async def root():
 async def chat(request: Request):
     kakaorequest = await request.json()
     # request에 URL이 포함되어있지 않아서 넣어줘야 한다
-    scope = request.scope  # ASGI의 scope 객체
+    scope = request.scope 
     scheme = scope.get("scheme", "http")
     host = scope["headers"][0][1].decode("utf-8")  # Host 헤더에서 호스트 정보 가져오기(base url넘기기)
     path = scope["path"]
