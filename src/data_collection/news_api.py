@@ -208,7 +208,7 @@ class NewsCollector:
             url = f'{self.base_url}top-headlines'
             params = {
                 'country': 'us',
-                'pageSize': 20,
+                'pageSize': 50,
                 'from': yesterday_str,
                 'language': 'en',
                 'apiKey': self.api_key
