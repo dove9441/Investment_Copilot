@@ -1,20 +1,13 @@
-
-"""
-News Collector for LLM Processing
--------------------------------
-미국의 주요 뉴스를 수집하고 전체 내용을 포함하여 LLM 처리를 위해 최적화된 형태로 제공
-
-Author: Junyoung Kwon
-Last Modified: 2024-11-21
-"""
-
 import requests
 import logging
 import json
 import os
 import time
+import feedparser
+import concurrent.futures
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple, Union
 from dotenv import load_dotenv
 from newspaper import Article
 import nltk
@@ -73,62 +66,62 @@ class NewsAPIClient:
             self.logger.exception("뉴스 수집 중 오류 발생")
             print(f"오류 발생: {str(e)}")
             return self._create_empty_result()
-
-    def _fetch_top_headlines(self) -> Optional[Dict]:
-        """Top Headlines API를 통해 주요 뉴스 가져오기"""
-        try:
-            # 어제 날짜 계산
-            yesterday = datetime.now() - timedelta(days=1)
-            yesterday_str = yesterday.strftime('%Y-%m-%d')
-            
-            url = f'{self.base_url}top-headlines'
-            params = {
-                'country': 'us',  # 미국 뉴스로 한정
-                'pageSize': 100,  # 최대한 많은 기사 수집
-                'from': yesterday_str,
-                'language': 'en',
-                'apiKey': self.api_key
-            }
-
-            print("  - API 요청 중...")
-            response = requests.get(url, params=params)
-            
-            if response.status_code != 200:
-                print(f"  - API 오류: {response.status_code}")
-                return None
-
-            data = response.json()
-            print(f"  - {len(data.get('articles', []))}개의 기사 발견")
-            return data
-
-        except Exception as e:
-            print(f"  - 데이터 수집 실패: {str(e)}")
-            return None
-
-    def _process_and_score_articles(self, articles: List[Dict]) -> List[Dict]:
-        """기사 처리 및 점수화"""
-        scored_articles = []
-        print(f"  - {len(articles)}개 기사 분석 중...")
         
-        for idx, article in enumerate(articles, 1):
-            if idx % 10 == 0:
-                print(f"  - {idx}/{len(articles)} 기사 처리됨...")
-            
-            score = self._calculate_article_score(article)
-            scored_articles.append((score, article))
 
-        # 점수 기준 정렬
-        scored_articles.sort(key=lambda x: x[0], reverse=True)
-        return [article for _, article in scored_articles]
-
-    def _calculate_article_score(self, article: Dict) -> int:
-        """기사 중요도 점수 계산"""
-        score = 0
-        title = article.get('title', '').lower()
-        source = article.get('source', {}).get('name', '')
-
-        # 중요 키워드 점수
-        priority_keywords = {
+class NewsCollector:
+    """통합 뉴스 수집기 클래스"""
+    
+    def __init__(self, api_key: str = None, output_dir: str = "data/raw/news"):
+        """
+        통합 뉴스 수집기 초기화
+        
+        Args:
+            api_key: NewsAPI 키 (선택사항)
+            output_dir: 뉴스 데이터 저장 디렉토리
+        """
+        self.api_key = api_key
+        self.output_dir = output_dir
+        self.logger = logging.getLogger(__name__)
+        
+        # 데이터 디렉토리 생성
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # newspaper3k 초기화
+        try:
+            nltk.data.find('punkt')
+        except LookupError:
+            print("NLTK punkt 데이터 다운로드 중...")
+            nltk.download('punkt', quiet=True)
+        
+        # NewsAPI 설정
+        self.base_url = 'https://newsapi.org/v2/'
+        
+        # RSS 피드 설정
+        self.economic_sources = {
+            'yahoo_finance': {
+                'name': 'Yahoo Finance',
+                'url': 'https://finance.yahoo.com/news/rssindex',
+                'reliability': 8
+            },
+            'marketwatch': {
+                'name': 'MarketWatch',
+                'url': 'http://feeds.marketwatch.com/marketwatch/topstories',
+                'reliability': 8
+            },
+            'reuters_markets': {
+                'name': 'Reuters Markets',
+                'url': 'https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best',
+                'reliability': 9
+            },
+            'seeking_alpha': {
+                'name': 'Seeking Alpha',
+                'url': 'https://seekingalpha.com/market_currents.xml',
+                'reliability': 7
+            }
+        }
+        
+        # 키워드 설정
+        self.general_keywords = {
             'breaking': 15,
             'urgent': 12,
             'exclusive': 10,
@@ -139,13 +132,22 @@ class NewsAPIClient:
             'critical': 6,
             'important': 5
         }
-
-        for keyword, points in priority_keywords.items():
-            if keyword in title:
-                score += points
-
-        # 신뢰도 높은 출처 점수
-        trusted_sources = {
+        
+        self.economic_keywords = {
+            'market': 5,
+            'stock': 4,
+            'economy': 5,
+            'fed': 6,
+            'inflation': 5,
+            'interest rate': 5,
+            'recession': 6,
+            'gdp': 4,
+            'earnings': 4,
+            'investment': 3
+        }
+        
+        # 신뢰도 높은 출처
+        self.trusted_sources = {
             'Reuters': 15,
             'Bloomberg': 15,
             'Associated Press': 14,
@@ -157,20 +159,128 @@ class NewsAPIClient:
             'CNN': 9,
             'The Washington Post': 9
         }
-        score += trusted_sources.get(source, 0)
+        
+        print("NewsCollector 초기화 완료")
 
-        # 콘텐츠 존재 여부
-        if article.get('content'):
-            score += 5
+    def collect_all_news(self) -> Dict:
+        """
+        모든 소스에서 뉴스 수집 및 통합
+        
+        Returns:
+            Dict: 수집된 통합 뉴스 데이터
+        """
+        all_articles = []
+        
+        # NewsAPI로부터 일반 뉴스 수집
+        if self.api_key:
+            print("\n=== NewsAPI에서 뉴스 수집 중... ===")
+            general_news = self._collect_from_newsapi()
+            if general_news.get('status') == 'success':
+                all_articles.extend(general_news['articles'])
+        
+        # RSS 피드로부터 경제 뉴스 수집
+        print("\n=== RSS 피드에서 경제 뉴스 수집 중... ===")
+        economic_news = self._collect_from_rss()
+        all_articles.extend(economic_news)
+        
+        # 전체 기사 처리 및 정렬
+        processed_articles = self._process_all_articles(all_articles)
+        
+        result = {
+            'status': 'success',
+            'timestamp': datetime.now().isoformat(),
+            'total_articles': len(processed_articles),
+            'articles': processed_articles
+        }
+        
+        # 결과 저장
+        self._save_to_file(result)
+        
+        return result
 
-        # URL 존재 여부
-        if article.get('url'):
-            score += 3
+    def _collect_from_newsapi(self) -> Dict:
+        """NewsAPI를 통한 뉴스 수집"""
+        try:
+            # 어제 날짜 계산
+            yesterday = datetime.now() - timedelta(days=1)
+            yesterday_str = yesterday.strftime('%Y-%m-%d')
+            
+            url = f'{self.base_url}top-headlines'
+            params = {
+                'country': 'us',
+                'pageSize': 50,
+                'from': yesterday_str,
+                'language': 'en',
+                'apiKey': self.api_key
+            }
+            
+            response = requests.get(url, params=params)
+            if response.status_code != 200:
+                return self._create_empty_result()
+            
+            data = response.json()
+            if not data.get('articles'):
+                return self._create_empty_result()
+            
+            return {
+                'status': 'success',
+                'articles': self._process_newsapi_articles(data['articles'])
+            }
+            
+        except Exception as e:
+            self.logger.error(f"NewsAPI 수집 실패: {str(e)}")
+            return self._create_empty_result()
 
-        return score
+    def _collect_from_rss(self) -> List[Dict]:
+        """RSS 피드를 통한 경제 뉴스 수집"""
+        articles = []
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            future_to_source = {
+                executor.submit(self._fetch_from_rss, source_info): source_id
+                for source_id, source_info in self.economic_sources.items()
+            }
+            
+            for future in concurrent.futures.as_completed(future_to_source):
+                source_id = future_to_source[future]
+                try:
+                    source_articles = future.result()
+                    articles.extend(source_articles)
+                except Exception as e:
+                    self.logger.error(f"{source_id} RSS 수집 실패: {str(e)}")
+        
+        return articles
 
-    def _get_full_article_content(self, url: str) -> Optional[str]:
-        """기사 URL에서 전체 내용 추출"""
+    def _fetch_from_rss(self, source_info: Dict) -> List[Dict]:
+        """특정 RSS 소스에서 뉴스 수집"""
+        articles = []
+        try:
+            feed = feedparser.parse(source_info['url'])
+            
+            for entry in feed.entries:
+                article = {
+                    'title': entry.get('title', ''),
+                    'url': entry.get('link', ''),
+                    'publishedAt': entry.get('published', ''),
+                    'source': {'name': source_info['name']},
+                    'content': entry.get('summary', '')
+                }
+                
+                # 전체 내용 가져오기
+                full_content = self._get_full_content(article['url'])
+                if full_content:
+                    article['full_content'] = full_content
+                
+                articles.append(article)
+                
+            return articles
+            
+        except Exception as e:
+            self.logger.error(f"RSS 피드 수집 실패 ({source_info['name']}): {str(e)}")
+            return []
+
+    def _get_full_content(self, url: str) -> Optional[str]:
+        """기사 전체 내용 추출"""
         try:
             article = Article(url)
             article.download()
@@ -180,53 +290,73 @@ class NewsAPIClient:
             self.logger.error(f"기사 내용 추출 실패 ({url}): {str(e)}")
             return None
 
-    def _prepare_result(self, articles: List[Dict]) -> Dict:
-        """LLM 처리를 위한 결과 준비 (전체 내용 포함)"""
-        processed_articles = []
-        total_articles = len(articles)
+    def _calculate_article_score(self, article: Dict) -> int:
+        """기사 중요도 점수 계산"""
+        score = 0
+        text = f"{article.get('title', '')} {article.get('content', '')}".lower()
+        source = article.get('source', {}).get('name', '')
         
-        print("\n전체 기사 내용 수집 중...")
-        for idx, article in enumerate(articles, 1):
-            print(f"  - 진행률: {idx}/{total_articles} 기사 처리 중...")
-            
-            # 전체 내용 가져오기
-            full_content = self._get_full_article_content(article.get('url', ''))
-            
+        # 일반 키워드 점수
+        for keyword, points in self.general_keywords.items():
+            if keyword in text:
+                score += points
+        
+        # 경제 키워드 점수
+        for keyword, points in self.economic_keywords.items():
+            if keyword in text:
+                score += points
+        
+        # 출처 신뢰도 점수
+        score += self.trusted_sources.get(source, 0)
+        
+        # 전체 내용 존재 여부
+        if article.get('full_content'):
+            score += 5
+        
+        return score
+
+    def _process_all_articles(self, articles: List[Dict]) -> List[Dict]:
+        """전체 기사 처리 및 정렬"""
+        scored_articles = [
+            (self._calculate_article_score(article), article)
+            for article in articles
+        ]
+        
+        scored_articles.sort(key=lambda x: x[0], reverse=True)
+        return [article for _, article in scored_articles]
+
+    def _process_newsapi_articles(self, articles: List[Dict]) -> List[Dict]:
+        """NewsAPI 기사 처리"""
+        processed = []
+        for article in articles:
             processed_article = {
                 'title': article.get('title'),
-                'source': article.get('source', {}).get('name'),
                 'url': article.get('url'),
                 'publishedAt': article.get('publishedAt'),
-                'summary': article.get('content'),  # API에서 제공하는 요약 보존
-                'full_content': full_content  # 전체 내용 추가
+                'source': article.get('source', {}),
+                'content': article.get('content'),
+                'full_content': self._get_full_content(article.get('url', ''))
             }
-            processed_articles.append(processed_article)
-            
-            # API 부하 방지
-            time.sleep(1)
-
-        return {
-            'status': 'success',
-            'timestamp': datetime.now().isoformat(),
-            'total_articles': len(processed_articles),
-            'articles': processed_articles
-        }
+            processed.append(processed_article)
+            time.sleep(1)  # API 부하 방지
+        
+        return processed
 
     def _save_to_file(self, data: Dict) -> str:
-        """수집된 뉴스 데이터 저장 및 파일 경로 반환"""
+        """결과 저장"""
         try:
             timestamp = datetime.now().strftime('%Y%m%d')
             filename = f"collected_news_{timestamp}.json"
-            filepath = os.path.join(self.data_dir, filename)
-
+            filepath = os.path.join(self.output_dir, filename)
+            
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-
-            print(f"  - 데이터 저장 완료: {filepath}")
+            
+            print(f"\n데이터 저장 완료: {filepath}")
             return filepath
-
+            
         except Exception as e:
-            print(f"  - 데이터 저장 실패: {str(e)}")
+            self.logger.error(f"데이터 저장 실패: {str(e)}")
             return ""
 
     def _create_empty_result(self) -> Dict:
@@ -238,47 +368,25 @@ class NewsAPIClient:
             'articles': []
         }
 
-    def main_display(self, result: Dict, filepath: str):
-        """결과 상세 출력"""
-        if result['total_articles'] > 0:
-            print("\n=== 수집된 주요 뉴스 ===")
-            for idx, article in enumerate(result['articles'], 1):
-                print(f"\n{idx}. {article['title']}")
-                print(f"출처: {article['source']}")
-                print(f"시간: {article['publishedAt']}")
-                print(f"URL: {article['url']}")
-                
-                # 전체 내용 일부 출력
-                if article.get('full_content'):
-                    preview = article['full_content'][:200] + "..." if len(article['full_content']) > 200 else article['full_content']
-                    print(f"내용 미리보기: {preview}")
-                
-                if idx >= 10:  # 상위 10개만 출력
-                    remaining = len(result['articles']) - 10
-                    print(f"\n... 외 {remaining}개 기사")
-                    break
-                    
-            print(f"\n전체 뉴스 데이터가 다음 파일에 저장되었습니다: {filepath}")
-        else:
-            print("\n수집된 뉴스가 없습니다.")
-
 def main():
-    """메인 실행 함수"""
+    """테스트용 메인 함수"""
     load_dotenv()
     api_key = os.getenv('NEWS_API_KEY')
-
-    if not api_key:
-        print("Error: API 키가 설정되지 않았습니다. .env 파일에 NEWS_API_KEY를 추가하세요.")
-        return
-
-    # 뉴스 수집 실행
-    collector = NewsAPIClient(api_key)
-    result = collector.collect_news()
     
-    # 데이터 저장 및 결과 출력
+    collector = NewsCollector(api_key=api_key)
+    result = collector.collect_all_news()
+    
     if result['status'] == 'success':
-        filepath = collector._save_to_file(result)
-        collector.main_display(result, filepath)
+        print("\n=== 수집된 뉴스 ===")
+        for idx, article in enumerate(result['articles'][:10], 1):
+            print(f"\n{idx}. {article['title']}")
+            print(f"출처: {article['source']['name']}")
+            print(f"시간: {article['publishedAt']}")
+            print(f"URL: {article['url']}")
+            
+            if article.get('full_content'):
+                preview = article['full_content'][:200] + "..."
+                print(f"내용 미리보기: {preview}")
     else:
         print("뉴스 수집에 실패했습니다.")
 

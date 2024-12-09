@@ -52,11 +52,6 @@ def AI_Response(request, response_queue, filename):
             dbReset(filename)
 
     # 오늘의 정보 요청
-    elif 'Dashboard' in request["userRequest"]["utterance"]: 
-        dbReset(filename)
-        bot_res = getDashboard(request)
-        response_queue.put(textResponseFormat(bot_res))
-        save_log = str(bot_res)
 
     elif '/get C' in request["userRequest"]["utterance"]: 
         dbReset(filename)
@@ -72,9 +67,9 @@ def AI_Response(request, response_queue, filename):
         with open(filename, 'w') as f:
             f.write(save_log)
 
-    elif '오늘의 뉴스' in request["userRequest"]["utterance"]: 
+    elif '오늘의 뉴스' == request["userRequest"]["utterance"]: 
         dbReset(filename)
-        bot_res = getResponseBasedVectorSpace('주어진 기사들 중 경제와 시장 상황, 투자, 정치에 관련된 기사 5개를 선정해서 각 기사를 한국어로 요약해줘.')
+        bot_res = getResponseBasedVectorSpace('주어진 기사들 중 경제와 시장 상황, 투자, 정치에 관련된 기사 10개를 선정해서 각 기사를 한국어로 요약해줘.')
         response_queue.put(textResponseFormat(bot_res))
         save_log = str(bot_res)
         with open(filename, 'w') as f:
@@ -82,9 +77,16 @@ def AI_Response(request, response_queue, filename):
 
     elif 'Fear & Greed' in request["userRequest"]["utterance"]: 
         dbReset(filename)
-        prompt = request["userRequest"]["utterance"].replace("/get", "")
         response_queue.put(getFearandGreed(request))
 
+    elif 'Dashboard' == request["userRequest"]["utterance"]: 
+        dbReset(filename)
+        response_queue.put(getDashboard(request))
+
+    elif '주요 종목' == request["userRequest"]["utterance"]: 
+        dbReset(filename)
+        response_queue.put(getIndex(request))
+    
     elif '/s' in request["userRequest"]["utterance"]:
         dbReset(filename)
         prompt = request["userRequest"]["utterance"].replace("/s", "")
@@ -269,27 +271,46 @@ def getFearandGreed(request: Request):
 def getDashboard(request : Request):
     base_url = request["base_url"]
     dashboard_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/dashboard_{datetime.now().strftime("%Y%m%d")}.png"
-    index_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/table_주요_지수_{datetime.now().strftime("%Y%m%d")}.png"
+    index_image_url = f"{base_url.replace("chat/", "")}data/images/market_data/table_주요지수_{datetime.now().strftime("%Y%m%d")}.png"
     response = {
     "version": "2.0",
     "template": {
         "outputs": [
-            {
-                "simpleImage": {
-                    "imageUrl": dashboard_image_url,
-                    "altText": "alt"
-                },
-            },
-            {
-                "simpleImage": {
-                "imageUrl": index_image_url,
-                "altText": "alt"
-                },
-            }
-            
-        ]
+        {
+        "simpleImage": { "imageUrl": dashboard_image_url }
+        },
+        {
+        "simpleImage": { "imageUrl": index_image_url }
+        }
+
+    ]
     }
     }
+    return response
+
+def getIndex(request : Request):
+    base_url = request["base_url"]
+    index_url_1 = f"{base_url.replace("chat/", "")}data/images/market_data/table_기술주_{datetime.now().strftime("%Y%m%d")}.png"
+    index_url_2 = f"{base_url.replace("chat/", "")}data/images/market_data/table_원자재_{datetime.now().strftime("%Y%m%d")}.png"
+    index_url_3 = f"{base_url.replace("chat/", "")}data/images/market_data/table_국채수익률_{datetime.now().strftime("%Y%m%d")}.png"
+    response = {
+    "version": "2.0",
+    "template": {
+        "outputs": [
+        {
+        "simpleImage": { "imageUrl": index_url_1 }
+        },
+        {
+        "simpleImage": { "imageUrl": index_url_2 }
+        },
+        {
+        "simpleImage": { "imageUrl": index_url_3 }
+        }
+
+    ]
+    }
+    }
+    return response
 
 def getCorrelationMatrix(request : Request):
     # 클라이언트 요청의 호스트 URL 가져오기

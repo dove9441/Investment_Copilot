@@ -14,10 +14,12 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 import os
+from datetime import datetime
 # 1. 데이터 로드 및 전처리
 
 # JSON 데이터 로드 (예시를 위해 'news_articles.json' 파일을 사용한다고 가정합니다)
-with open('./data/raw/news/collected_news_20241208_021939.json', 'r', encoding='utf-8') as f:
+
+with open(f'./data/raw/news/collected_news_{datetime.now().strftime('%Y%m%d')}.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 dotenv.load_dotenv()
 articles = data['articles']

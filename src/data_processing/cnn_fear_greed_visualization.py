@@ -12,6 +12,7 @@ if src_dir not in sys.path:
 # 한글 폰트 설정
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import json
 
 # 한글 폰트 설정
 def set_korean_font():
@@ -45,6 +46,10 @@ from datetime import datetime
 import seaborn as sns
 from data_collection.cnn_fear_greed import CNNFearGreedIndex
 from data_collection.yahoo_finance import YahooFinance
+from langchain.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.docstore.document import Document
+import pprint
 
 class ComprehensiveMarketVisualizer:
     """종합 시장 데이터 시각화 클래스"""
@@ -124,23 +129,44 @@ class ComprehensiveMarketVisualizer:
 
         return fig
 
+
+
     def create_market_tables(self) -> Dict[str, go.Figure]:
+        # 벡터스페이스 저장을 위한 코드
+        embedding_model = HuggingFaceEmbeddings(
+            model_name='jhgan/ko-sbert-nli',
+            model_kwargs={'device':'cpu'},
+            encode_kwargs={'normalize_embeddings':True},
+        )
+        
         """카테고리별 시장 데이터 테이블 생성"""
         market_data = self.yahoo_collector.get_market_summary()
+        #pprint.pprint(market_data)
         tables = {}
         categorized_data = {
-            '주요 지수': {}, '국채 수익률': {}, '원자재': {}, '기술주': {}
+            '주요지수': {}, '국채수익률': {}, '원자재': {}, '기술주': {}
         }
-        
+        # 기존 인덱스 로드
+        db = FAISS.load_local("./db/faiss", embedding_model, allow_dangerous_deserialization=True)
+
+        # 새로운 문서 추가
         for symbol, data in market_data.items():
             if symbol in self.yahoo_collector.indices:
-                categorized_data['주요 지수'][symbol] = data
+                categorized_data['주요지수'][symbol] = data
             elif symbol in self.yahoo_collector.treasuries:
-                categorized_data['국채 수익률'][symbol] = data
+                categorized_data['국채수익률'][symbol] = data
             elif symbol in self.yahoo_collector.commodities:
                 categorized_data['원자재'][symbol] = data
             elif symbol in self.yahoo_collector.tech_stocks:
                 categorized_data['기술주'][symbol] = data
+            # vectorSpace 저장
+            print(f"종목코드 : {symbol}, 종목 이름 : {data['name']}, 변동폭 : {data['change_percent']:+.2f}%, 가격 : {data['price']}{data['unit']}, 거래량 : {data['volume']}, 기준시각 : {data['timestamp']}")
+
+            new_docs = [Document(
+                page_content=f"다음은 주식 종목과 그에 대한 정보이다. 종목코드 : {symbol}, 종목 이름 : {data['name']}, 변동폭 : {data['change_percent']:+.2f}%, 주가 : {data['price']}{data['unit']}, 거래량 : {data['volume']} 기준시각 : {data['timestamp']}"
+            )]
+            db.add_documents(new_docs)
+        db.save_local("./db/faiss")
 
         for category, data in categorized_data.items():
             if data:

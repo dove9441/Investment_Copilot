@@ -54,4 +54,3 @@ llm = ChatGroq(model="llama-3.1-8b-instant")#llama-3.1-70b-versatile")
 chain = load_summarize_chain(llm,  map_prompt=prompt, combine_prompt=combine_prompt, chain_type="map_reduce", verbose=True)
 
 print(chain.invoke(docs))
-        

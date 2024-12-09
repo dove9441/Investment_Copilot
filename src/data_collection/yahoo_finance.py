@@ -59,6 +59,8 @@ class YahooFinance:
             'GOOGL': {'name': 'Alphabet', 'unit': '$'},          # 검색/광고
             'AMZN': {'name': 'Amazon', 'unit': '$'},             # 전자상거래/클라우드
             'META': {'name': 'Meta', 'unit': '$'},               # 소셜미디어
+            'TSLA': {'name': 'Tesla', 'unit': '$'},
+            
             
             # 반도체
             'NVDA': {'name': 'NVIDIA', 'unit': '$'},             # GPU/AI칩
@@ -70,6 +72,7 @@ class YahooFinance:
             'ADI': {'name': 'Analog Devices', 'unit': '$'},      # 아날로그반도체
             'AMAT': {'name': 'Applied Materials', 'unit': '$'},   # 반도체장비
             'LRCX': {'name': 'Lam Research', 'unit': '$'},       # 반도체장비
+            'TSM': {'name': 'Taiwan Semiconductor Manufacturing Company (TSMC)', 'unit': '$'},
             
             # 소프트웨어/클라우드
             'CRM': {'name': 'Salesforce', 'unit': '$'},          # CRM솔루션
