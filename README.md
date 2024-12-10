@@ -10,7 +10,7 @@
 
 NewsAPI, Yahoo Finance, CNN Fear & Greed Index의 데이터를 수집하고 LangChain과 FAISS를 활용하여 매일 뉴스와 주식 시장 상황 정보를 제공하는 카카오톡 챗봇입니다. 
 
-## 📌 목차
+
 
 # 📌 목차
 
@@ -42,7 +42,9 @@ NewsAPI, Yahoo Finance, CNN Fear & Greed Index의 데이터를 수집하고 Lang
 매일 해외 주요 뉴스와 시장 정보를 수집해 투자 인사이트를 제공하는 카카오톡 챗봇입니다.
 
 http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 사용해보세요.
+**서버 운영 : 24.12.12 00:00 ~ **
 
+**문제 시 dotml386@naver.com으로 메일 남겨주시면 처리하겠습니다.**
 
 ## 🌟 핵심 기능
 
