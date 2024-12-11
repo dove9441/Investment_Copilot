@@ -351,6 +351,13 @@ def getResponseFromLLAMA(prompt):
 - 폴백 블록 : 유저 입력이 미리 입력한 패턴과 일치하지 않았을 떄의 응답(ex : 이해할 수 없는 질문이에요.)
 - 스킬 : 블록에 종속되어 사용자에게 응답을 돌려주는 기능
 ![](https://kakaobusiness.gitbook.io/~gitbook/image?url=https%3A%2F%2F234308570-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252F-MVZVmVOd-5LtENUPqdq%252Fuploads%252FMUfrhFcZN9D4pSfU2d1x%252Fblock-overview.png%3Falt%3Dmedia%26token%3D305e0455-58df-4965-839a-f0456321fb34&width=768&dpr=2&quality=100&sign=91409000&sv=2)
+
+
+![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/kakao1.png)
+
+![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/kakao2.png)
+
+
 여기서 봇 응답을 스킬데이터로 사용한다면, 서버에서 받은 스킬 데이터를 답장으로 내보낼 수 있게 됩니다. [**카카오톡 비즈니스 가이드**](https://kakaobusiness.gitbook.io/main/tool/chatbot/skill_guide/answer_json_format)를 보면, 어떤 json 포맷이 어떠한 형식의 응답으로 나타는지 확인할 수 있습니다.
 
 이번 프로젝트에서는, 유저가 어떤 패턴의 발화를 할지 알 수 없기 때문에 폴백 블록과 스킬 서버를 연결해서, 유저의 모든 발화에 대해 스킬서버가 응답하게 했습니다.
