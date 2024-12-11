@@ -711,7 +711,7 @@ logging.info("==== Daily Reporter 종료 ====")
 
 
 # 배포
-AWS 등을 사용할 수 있지만, url은 예쁠 필요가 없고(api 서버만 존재하기 떄문에) 간편하기 때문에  쓰지 않는 노트북 + ngrok(localhost 포워딩)으로 배포하였습니다.
+AWS 등을 사용할 수 있지만, url은 예쁠 필요가 없고(api 서버만 존재하기 떄문에) 간편하기 때문에  쓰지 않는 노트북 + ngrok(localhost 포워딩)으로 배포하였습니다. .sh 파일은 윈도우 환경에 맞는 .bat 파일로 변환하여 사용하였습니다.
 
 **서버 작동 사진**
 ![](https://raw.githubusercontent.com/dove9441/Investment_Copilot/main/이미지%20폴더/server.png)
@@ -925,8 +925,7 @@ Python 버전과 각 라이브러리의 요구사항을 조정하며 패키지 �
 이 프로젝트는 GNU General Public License v3.0 라이센스를 따릅니다. 자세한 내용은 LICENSE 파일을 참조하세요.
 
 ## References
-- 카카오톡 응답 서버 가이드
-- News API 문서
+- [카카오비즈니스 가이드](https://kakaobusiness.gitbook.io/main)
 - https://velog.io/@woody_ahn/Llama-3.1%EB%A1%9C-%EB%A1%9C%EC%BB%AC%ED%99%98%EA%B2%BD-RAG-%EA%B5%AC%ED%98%84
 - [https://velog.io/@cho876/요즘-뜨고있다는-FastAPI](https://velog.io/@cho876/%EC%9A%94%EC%A6%98-%EB%9C%A8%EA%B3%A0%EC%9E%88%EB%8B%A4%EB%8A%94-FastAPI)
 - https://recording-it.tistory.com/115
