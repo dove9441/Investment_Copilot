@@ -43,10 +43,8 @@ NewsAPI, Yahoo Finance, CNN Fear & Greed Index의 데이터를 수집하고 Lang
 
 http://pf.kakao.com/_lmNxdn 채널을 추가하거나 채팅을 통해 바로 사용해보세요.
 
-**서버 운영 : 24.12.11 00:00 ~ **
+**서버 운영 : 24.12.11 ~ 24.12.26(종료) **
 
-
-**문제 시 dotml386@naver.com으로 메일 남겨주세요.**
 
 ## 🌟 핵심 기능
 
